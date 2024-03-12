@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 30px;
+            color: #333;
+        }
+
+        #game-container {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 6px;
+            width: 250px; /* (80px + 6px gap) * 3 */
+            margin: auto;
+            margin-top: 30px;
+        }
+
+        .cell {
+            position: relative;
+            border: 3px solid #333;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .cell:hover {
+            background-color: #ddd;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .animate-win-line {
+            position: absolute;
+            background-color: #333;
+            z-index: 1;
+            animation: drawLine 0.5s forwards;
+        }
+
+        @keyframes drawLine {
+            0% {
+                width: 0;
+            }
+            100% {
+                width: 80px; /* Width of the cell */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+    <div id="game-container">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
+        <div id="win-line" class="animate-win-line"></div>
+    </div>
+    <p id="result"></p>
+
+    <script>
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        const winningCombos = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        function makeMove(cellIndex) {
+            if (!gameBoard[cellIndex]) {
+                gameBoard[cellIndex] = currentPlayer;
+                document.getElementsByClassName('cell')[cellIndex].textContent = currentPlayer;
+                if (checkWin(currentPlayer)) {
+                    document.getElementById('result').textContent = `${currentPlayer} wins!`;
+                    document.getElementById('win-line').style.top = `${cellIndex < 3 ? 0 : (cellIndex < 6 ? 86 : 172)}px`;
+                    document.getElementById('win-line').style.left = `${(cellIndex % 3) * 86}px`;
+                    document.getElementById('win-line').style.transform = `rotate(${cellIndex % 2 ? 45 : 0}deg)`;
+                    document.getElementById('win-line').classList.add('animate-win-line');
+                    disableBoard();
+                } else if (gameBoard.every(cell => cell !== '')) {
+                    document.getElementById('result').textContent = "It's a draw!";
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                }
+            }
+        }
+
+        function checkWin(player) {
+            return winningCombos.some(combo => {
+                return combo.every(cellIndex => {
+                    return gameBoard[cellIndex] === player;
+                });
+            });
+        }
+
+        function disableBoard() {
+            Array.from(document.getElementsByClassName('cell')).forEach(cell => {
+                cell.onclick = null;
+            });
+        }
+    </script>
+</body>
+</html>
