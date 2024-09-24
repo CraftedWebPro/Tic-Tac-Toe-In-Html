@@ -69,7 +69,7 @@
     </style>
 </head>
 <body>
-    <h1>Tic Tac Toe</h1>
+    <h1>Tic Tac Toe - Human vs Computer</h1>
     <div id="game-container">
         <div class="cell" onclick="makeMove(0)"></div>
         <div class="cell" onclick="makeMove(1)"></div>
@@ -85,7 +85,7 @@
     <p id="result"></p>
 
     <script>
-        let currentPlayer = 'X';
+        let currentPlayer = 'X'; // Human plays 'X', Computer plays 'O'
         let gameBoard = ['', '', '', '', '', '', '', '', ''];
         const winningCombos = [
             [0, 1, 2],
@@ -99,21 +99,34 @@
         ];
 
         function makeMove(cellIndex) {
-            if (!gameBoard[cellIndex]) {
-                gameBoard[cellIndex] = currentPlayer;
-                document.getElementsByClassName('cell')[cellIndex].textContent = currentPlayer;
-                if (checkWin(currentPlayer)) {
-                    document.getElementById('result').textContent = `${currentPlayer} wins!`;
-                    document.getElementById('win-line').style.top = `${cellIndex < 3 ? 0 : (cellIndex < 6 ? 86 : 172)}px`;
-                    document.getElementById('win-line').style.left = `${(cellIndex % 3) * 86}px`;
-                    document.getElementById('win-line').style.transform = `rotate(${cellIndex % 2 ? 45 : 0}deg)`;
-                    document.getElementById('win-line').classList.add('animate-win-line');
+            if (!gameBoard[cellIndex] && currentPlayer === 'X') {
+                gameBoard[cellIndex] = 'X';
+                document.getElementsByClassName('cell')[cellIndex].textContent = 'X';
+
+                if (checkWin('X')) {
+                    document.getElementById('result').textContent = 'You win!';
                     disableBoard();
                 } else if (gameBoard.every(cell => cell !== '')) {
                     document.getElementById('result').textContent = "It's a draw!";
                 } else {
-                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    currentPlayer = 'O';
+                    setTimeout(computerMove, 500); // Allow some time before computer makes a move
                 }
+            }
+        }
+
+        function computerMove() {
+            let bestMove = findBestMove(gameBoard);
+            gameBoard[bestMove] = 'O';
+            document.getElementsByClassName('cell')[bestMove].textContent = 'O';
+
+            if (checkWin('O')) {
+                document.getElementById('result').textContent = 'Computer wins!';
+                disableBoard();
+            } else if (gameBoard.every(cell => cell !== '')) {
+                document.getElementById('result').textContent = "It's a draw!";
+            } else {
+                currentPlayer = 'X';
             }
         }
 
@@ -129,6 +142,72 @@
             Array.from(document.getElementsByClassName('cell')).forEach(cell => {
                 cell.onclick = null;
             });
+        }
+
+        function isMovesLeft(board) {
+            return board.includes('');
+        }
+
+        function evaluate(board) {
+            for (let combo of winningCombos) {
+                if (board[combo[0]] === board[combo[1]] && board[combo[1]] === board[combo[2]]) {
+                    if (board[combo[0]] === 'O') {
+                        return 10; // Computer wins
+                    } else if (board[combo[0]] === 'X') {
+                        return -10; // Human wins
+                    }
+                }
+            }
+            return 0; // No one wins
+        }
+
+        function minimax(board, depth, isMaximizingPlayer) {
+            let score = evaluate(board);
+
+            if (score === 10) return score - depth;
+            if (score === -10) return score + depth;
+            if (!isMovesLeft(board)) return 0;
+
+            if (isMaximizingPlayer) {
+                let best = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'O';
+                        best = Math.max(best, minimax(board, depth + 1, false));
+                        board[i] = '';
+                    }
+                }
+                return best;
+            } else {
+                let best = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'X';
+                        best = Math.min(best, minimax(board, depth + 1, true));
+                        board[i] = '';
+                    }
+                }
+                return best;
+            }
+        }
+
+        function findBestMove(board) {
+            let bestVal = -Infinity;
+            let bestMove = -1;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    board[i] = 'O';
+                    let moveVal = minimax(board, 0, false);
+                    board[i] = '';
+
+                    if (moveVal > bestVal) {
+                        bestMove = i;
+                        bestVal = moveVal;
+                    }
+                }
+            }
+            return bestMove;
         }
     </script>
 </body>
